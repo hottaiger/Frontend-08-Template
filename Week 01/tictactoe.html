@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>三子棋</title>
+  <style>
+    .container {
+      width: 300px;
+      border: 1px solid #000;
+      border-bottom: 0;
+    }
+    .container > div {
+      width: 100px;
+      height: 100px;
+      line-height: 100px;
+      box-sizing: border-box;
+      border-right: 1px solid #000;
+      border-bottom: 1px solid #000;
+      float: left;
+      font-size: 24px;
+      text-align: center;
+    }
+    .container > div:nth-of-type(3n) {
+      border-right: 0;
+      /* border-bottom: 0; */
+    }
+    .container:after {
+      content: '';
+      display: block;
+      clear: both;
+      height: 0;
+      visibility: hidden;
+      zoom: 1;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+  </div>
+</body>
+<script>
+  let arr = [
+    [0, 0, 0],
+    [0, 0, 0],
+    [0, 0, 0]
+  ];
+  let player = 1; // 1表示第一个落子的玩家，2表示第二个落子的玩家
+  let chessCount = 0; // 棋子数量
+  const container = document.querySelector('.container');
+  const isSuccess = function (v) {
+    // 判断x轴
+    for (let i = 0; i < 3; i++) {
+      let result = true;
+      for (let j = 0; j <3; j++) {
+        if (arr[i][j] !== v) {
+          result = false;
+        }
+      }
+      if (result) {
+        return true;
+      }
+    }
+    // 判断y轴
+    for (let i = 0; i < 3; i++) {
+      let result = true;
+      for (let j = 0; j <3; j++) {
+        if (arr[j][i] !== v) {
+          result = false;
+        }
+      }
+      if (result) {
+        return true;
+      }
+    }
+    // 往右上角斜线
+    {
+      let result = true;
+      for (let i = 0; i < 3; i++) {
+        if (arr[i][2 - i] !== v) {
+          result = false;
+        }
+      }
+      if (result) {
+        return true;
+      }
+    }
+    {
+      let result = true;
+      for (let i = 0; i < 3; i++) {
+        if (arr[i][i] !== v) {
+          result = false;
+        }
+      }
+      if (result) {
+        return true;
+      }
+    }
+  };
+  const move = function (x, y) {
+    if (arr[y][x] === 0) {
+      if (player === 1) {
+        arr[y][x] = 1;
+      } else if (player === 2) {
+        arr[y][x] = 2;
+      }
+      chessCount++;
+      player = chessCount % 2 === 0 ? 1 : 2;
+      if (isSuccess(arr[y][x])) {
+        alert(`玩家${arr[y][x] === 1 ? 1 : 2}胜`)
+      }
+      drawing();
+    }
+  };
+
+  function drawing () {
+    container.innerHTML = '';
+    arr.filter((ele, index) => {
+      ele.filter((ele2, index2) => {
+        let item = document.createElement('div');
+        if (ele2 === 1) {
+          item.innerText = '⭕';
+        } else if (ele2 === 2){
+          item.innerText = '❌';
+        }
+        item.addEventListener('click', () => {
+          move(index2, index);
+        });
+        container.append(item);
+      });
+    });
+  };
+  drawing();
+</script>
+</html>
