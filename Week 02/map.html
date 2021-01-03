@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>地图</title>
+</head>
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+  }
+  .container {
+    margin: 20px;
+    width: 701px;
+    font-size: 0;
+    /* background-color: gray; */
+  }
+  .item {
+    display: inline-block;
+    line-height: 7px;
+    background-color: gray;
+    border-right: 1px solid #fff;
+    border-bottom: 1px solid #fff;
+    width: 6px;
+    height: 6px;
+    vertical-align: middle;
+  }
+</style>
+<body>
+  <div class="container"></div>
+  <button class="save">保存</button>
+</body>
+<script>
+  class Sortd {
+    constructor (data, compare) {
+      this.data = data.slice();
+      this.compare = compare || ((a, b) => a - b)
+    }
+    take () {
+      if (this.data && this.data.length === 0) return;
+      let min = this.data[0];
+      let minIndex = 0;
+      for (let i = 0; i < this.data.length; i++) {
+        if (this.compare(this.data[i], min) < 0) {
+          min = this.data[i];
+          minIndex = i;
+        }
+      }
+      this.data[minIndex] = this.data[this.data.length - 1];
+      this.data.pop();
+      return min;
+    }
+    give (v) {
+      this.data.push(v);
+    }
+  };
+  // 寻路，广度优先算法
+  var map = localStorage['map'] ? JSON.parse(localStorage['map']) : Array(10000).fill(0);
+  let container = document.querySelector('.container');
+  for ( let y = 0; y < 100; y++ ) {
+    for (let x = 0; x < 100; x++) {
+      let item = document.createElement('div');
+      item.classList.add('item');
+
+      if (map[100 * y + x] === 1) {
+        item.style.background = 'black';
+      }
+
+      item.addEventListener('mousemove', () => {
+        if (mouseDown) {
+          if (clear) {
+            item.style.background = '';
+            map[100 * y + x] = 1;
+          } else {
+            item.style.background = 'black';
+            map[100 * y + x] = 1;
+          }
+        }
+      })
+
+      container.appendChild(item);
+    }
+  }
+  let mouseDown = false;
+  let clear = false;
+
+  document.addEventListener('mousedown', (e) => {
+    mouseDown = true;
+    // console.log('e===>', e);
+    clear = e.which === 3;
+  });
+
+  document.addEventListener('mouseup', () => {
+    mouseDown = false;
+  });
+
+  document.addEventListener('contextmenu', e => e.preventDefault());
+
+  let saveBtn = document.querySelector('.save');
+  saveBtn.addEventListener('click', () => {
+    localStorage['map'] = JSON.stringify(map);
+  });
+
+  function sleep (time) {
+    return new Promise((resolve, reject) => {
+      setTimeout(resolve, time);
+    });
+  };
+
+  // shift方法会删除首个数组元素
+  async function findPath (map, start, end) {
+    let queue = new Sortd([start], (a, b) => distance(a) - distance(b));
+    let table = Object.create(map);
+
+    function distance (point) {
+      return (point[0] - end[0]) ** 2 + (point[1] - end[1]) ** 2;
+    };
+
+    async function insert (x, y, pre) {
+      if (x < 0 || x >= 100 || y < 0 || y >= 100) {
+        return;
+      }
+      if (table[y * 100 + x]) {
+        return;
+      }
+      // await sleep(30);
+      // 记录insert进来的点，是哪个点周围的点
+      table[y * 100 + x] = pre;
+      container.children[100 * y + x].style.background = 'blue';
+      queue.give([x, y]);
+    };
+
+    while(queue) {
+      let [x, y] = queue.take();
+      await sleep(30);
+      // console.log('===>', x, y);
+      if (x === end[0] && y === end[1]) {
+        // container.children[100 * y + x].style.background = 'green';
+        // return true;
+        let path = [];
+        while(x !== start[0] && x !== start[y]) {
+          path.push(table[y * 100 + x]);
+          [x, y] = table[y * 100 + x];
+          await sleep(30);
+          container.children[y * 100 + x].style.background = 'red';
+        }
+        console.log('path===>', path);
+        return path;
+      }
+      // 把start周围四个点放进queue判断
+      await insert(x - 1, y, [x, y]);
+      await insert(x, y - 1, [x, y]);
+      await insert(x + 1, y, [x, y]);
+      await insert(x, y + 1, [x, y]);
+      
+      // 左上，右上，左下，右下
+      await insert(x - 1, y - 1, [x, y]);
+      await insert(x + 1, y - 1, [x, y]);
+      await insert(x - 1, y + 1, [x, y]);
+      await insert(x + 1, y + 1, [x, y]);
+    }
+    return null;
+  }
+</script>
+</html>
