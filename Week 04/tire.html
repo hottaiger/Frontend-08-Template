@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+</head>
+<body>
+  
+</body>
+<script>
+  let $ = Symbol('$');
+  class Trie {
+    constructor () {
+      this.root = new Object(null);
+    }
+    inset (word) {
+      let node = this.root;
+      for (const i of word) {
+        if (!node[i]) {
+          node[i] = new Object(null);
+        }
+        node = node[i]
+      }
+      if(!($ in node)) {
+        node[$] = 0;
+      }
+      node[$]++;
+      // console.log('node[$]===>', node[$]);
+    }
+    most () {
+      let max = 0;
+      let maxword = '';
+      let visit = (node, word) => {
+        if (node[$] && node[$] > max) {
+          max = node[$];
+          maxword = word;
+        }
+        for (let p in node) {
+          visit(node[p], word + p);
+        }
+      }
+      visit(this.root, '')
+      console.log('===>', max, maxword);
+    }
+  }
+  function randomWord (length) {
+    let s = '';
+    for (let i = 0; i < length; i++) {
+      // charCodeAt返回字符串第x个字符的unicode编码
+      s += String.fromCharCode(Math.random() * 26 + 'a'.charCodeAt(0))
+    }
+    return s;
+  }
+  var trie = new Trie();
+  for (let index = 0; index < 10000; index++) {
+    trie.inset(randomWord(4))
+  }
+</script>
+</html>
